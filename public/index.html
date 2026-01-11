@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAConnect Go - Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent: #238636;
+            --accent-hover: #2ea043;
+            --danger: #da3633;
+            --warning: #d29922;
+            --border: #30363d;
+            --success: #238636;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1 .badge {
+            background: var(--accent);
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .stat-card .label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .stat-card .value.success {
+            color: var(--success);
+        }
+
+        .stat-card .value.warning {
+            color: var(--warning);
+        }
+
+        /* Sessions Section */
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-secondary);
+        }
+
+        /* Table */
+        .sessions-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sessions-table th,
+        .sessions-table td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sessions-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .sessions-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .sessions-table tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.ready {
+            background: rgba(35, 134, 54, 0.2);
+            color: #3fb950;
+        }
+
+        .status-badge.connecting {
+            background: rgba(210, 153, 34, 0.2);
+            color: #d29922;
+        }
+
+        .status-badge.qr-ready {
+            background: rgba(56, 139, 253, 0.2);
+            color: #58a6ff;
+        }
+
+        .status-badge.disconnected {
+            background: rgba(218, 54, 51, 0.2);
+            color: #f85149;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* QR Code */
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .qr-container svg,
+        .qr-container img {
+            max-width: 256px;
+            margin-bottom: 16px;
+        }
+
+        .qr-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left: 3px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 3px solid var(--danger);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Actions */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .action-btn.danger:hover {
+            color: var(--danger);
+        }
+
+        /* VertexHub Branding */
+        .by-vertexhub {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1>
+            📱 WAConnect Go
+            <span class="badge">v1.0</span>
+            <span class="by-vertexhub">by VertexHub</span>
+        </h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="refreshSessions()">🔄 Refresh</button>
+            <button class="btn btn-primary" onclick="showCreateModal()">+ New Session</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total Sessions</div>
+                <div class="value" id="stat-total">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Active (Ready)</div>
+                <div class="value success" id="stat-ready">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Connecting</div>
+                <div class="value warning" id="stat-connecting">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Server Status</div>
+                <div class="value success" id="stat-server">●</div>
+            </div>
+        </div>
+
+        <!-- Sessions Table -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📋 Sessions</h2>
+            </div>
+            <div id="sessions-container">
+                <div class="empty-state">
+                    <div class="icon">📱</div>
+                    <p>No sessions yet. Click "New Session" to get started.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Modal -->
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Create New Session</h3>
+                <button class="modal-close" onclick="hideCreateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="session-id">Session ID (optional)</label>
+                    <input type="text" id="session-id" placeholder="Leave empty for auto-generated ID">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideCreateModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createSession()">Create Session</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal-overlay" id="qr-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📱 Scan QR Code</h3>
+                <button class="modal-close" onclick="hideQRModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="qr-container" id="qr-container">
+                    <div class="qr-loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 16px; color: var(--text-secondary);">Generating QR Code...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        const API_KEY = 'dev-api-key';
+
+        // API Helper
+        async function api(endpoint, options = {}) {
+            const response = await fetch(API_BASE + endpoint, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': API_KEY,
+                    ...options.headers
+                }
+            });
+            return response.json();
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✅' : '❌'}</span>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Sessions
+        async function refreshSessions() {
+            try {
+                const result = await api('/session');
+                if (result.success) {
+                    renderSessions(result.data.sessions);
+                    updateStats(result.data.stats);
+                }
+            } catch (error) {
+                showToast('Failed to load sessions', 'error');
+            }
+        }
+
+        function renderSessions(sessions) {
+            const container = document.getElementById('sessions-container');
+
+            if (!sessions || sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📱</div>
+                        <p>No sessions yet. Click "New Session" to get started.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="sessions-table">
+                    <thead>
+                        <tr>
+                            <th>Session ID</th>
+                            <th>Status</th>
+                            <th>Phone</th>
+                            <th>Last Activity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sessions.map(session => `
+                            <tr>
+                                <td><strong>${session.id}</strong></td>
+                                <td>${getStatusBadge(session.status)}</td>
+                                <td>${session.phoneNumber || '-'}</td>
+                                <td>${formatDate(session.lastActivityAt)}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        ${session.status === 'QR_READY' || session.status === 'CONNECTING' ?
+                    `<button class="action-btn" onclick="showQR('${session.id}')" title="View QR">📱</button>` : ''}
+                                        <button class="action-btn danger" onclick="deleteSession('${session.id}')" title="Delete">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function getStatusBadge(status) {
+            const statusMap = {
+                'READY': { class: 'ready', label: '● Ready' },
+                'CONNECTING': { class: 'connecting', label: '◌ Connecting' },
+                'QR_READY': { class: 'qr-ready', label: '◉ QR Ready' },
+                'INITIALIZING': { class: 'connecting', label: '◌ Initializing' },
+                'DISCONNECTED': { class: 'disconnected', label: '○ Disconnected' }
+            };
+            const info = statusMap[status] || { class: 'disconnected', label: status };
+            return `<span class="status-badge ${info.class}">${info.label}</span>`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString();
+        }
+
+        function updateStats(stats) {
+            document.getElementById('stat-total').textContent = stats.total || 0;
+            document.getElementById('stat-ready').textContent = stats.ready || 0;
+            document.getElementById('stat-connecting').textContent = stats.initializing || 0;
+        }
+
+        // Create Session
+        function showCreateModal() {
+            document.getElementById('create-modal').classList.add('active');
+            document.getElementById('session-id').value = '';
+        }
+
+        function hideCreateModal() {
+            document.getElementById('create-modal').classList.remove('active');
+        }
+
+        async function createSession() {
+            const sessionId = document.getElementById('session-id').value.trim();
+
+            try {
+                const result = await api('/session/create', {
+                    method: 'POST',
+                    body: JSON.stringify({ sessionId: sessionId || undefined })
+                });
+
+                if (result.success) {
+                    showToast('Session created!');
+                    hideCreateModal();
+                    refreshSessions();
+
+                    // Show QR modal after creation
+                    setTimeout(() => showQR(result.data.id), 500);
+                } else {
+                    showToast(result.error || 'Failed to create session', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to create session', 'error');
+            }
+        }
+
+        // QR Code
+        function showQR(sessionId) {
+            document.getElementById('qr-modal').classList.add('active');
+            document.getElementById('qr-container').innerHTML = `
+                <div class="qr-loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 16px; color: var(--text-secondary);">Generating QR Code...</p>
+                </div>
+            `;
+            fetchQR(sessionId);
+        }
+
+        function hideQRModal() {
+            document.getElementById('qr-modal').classList.remove('active');
+        }
+
+        async function fetchQR(sessionId) {
+            try {
+                const result = await api(`/session/${sessionId}/qr`);
+
+                if (result.success && result.data.qr) {
+                    document.getElementById('qr-container').innerHTML = `
+                        <div style="background: white; padding: 20px; border-radius: 8px; display: inline-block;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                                Scan with WhatsApp
+                            </div>
+                            <div style="font-family: monospace; font-size: 12px; word-break: break-all; color: #333;">
+                                ${result.data.qr.substring(0, 50)}...
+                            </div>
+                        </div>
+                        <p style="margin-top: 16px; color: var(--text-secondary);">
+                            QR Code data ready. In production, this will be an actual QR image.
+                        </p>
+                    `;
+                } else {
+                    document.getElementById('qr-container').innerHTML = `
+                        <p style="color: var(--danger);">${result.error || 'QR not available'}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('qr-container').innerHTML = `
+                    <p style="color: var(--danger);">Failed to fetch QR</p>
+                `;
+            }
+        }
+
+        // Delete Session
+        async function deleteSession(sessionId) {
+            if (!confirm(`Delete session "${sessionId}"?`)) return;
+
+            try {
+                const result = await api(`/session/${sessionId}`, { method: 'DELETE' });
+
+                if (result.success) {
+                    showToast('Session deleted');
+                    refreshSessions();
+                } else {
+                    showToast(result.error || 'Failed to delete', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete session', 'error');
+            }
+        }
+
+        // Health Check
+        async function checkHealth() {
+            try {
+                const res = await fetch('/health');
+                const data = await res.json();
+                document.getElementById('stat-server').textContent = data.status === 'ok' ? '● Online' : '○ Offline';
+            } catch (error) {
+                document.getElementById('stat-server').textContent = '○ Offline';
+                document.getElementById('stat-server').classList.add('disconnected');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshSessions();
+            checkHealth();
+
+            // Auto refresh every 5 seconds
+            setInterval(refreshSessions, 5000);
+        });
+    </script>
+
+    <footer class="footer">
+        <p>
+            WAConnect Go v1.0 • Made with ❤️ by
+            <a href="https://github.com/vertexhub" target="_blank">VertexHub</a> •
+            Open Source under <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>
+        </p>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+# Binaries
+waconnect
+*.exe
+
+# Sessions
+sessions/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage.out
+coverage.html
+
+# Vendor (if not using go modules)
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temp
+tmp/
+temp/
