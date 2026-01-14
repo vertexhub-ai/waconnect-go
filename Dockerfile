@@ -27,16 +27,13 @@ WORKDIR /app
 # Install CA certificates for HTTPS
 RUN apk add --no-cache ca-certificates tzdata
 
-# Create non-root user
-RUN adduser -D -g '' waconnect
+# Create non-root user and sessions directory
+RUN adduser -D -g '' waconnect && mkdir -p /app/sessions && chown waconnect:waconnect /app/sessions
 USER waconnect
 
 # Copy binary and static files
 COPY --from=builder /app/waconnect .
 COPY --from=builder /app/public ./public
-
-# Create sessions directory
-RUN mkdir -p ./sessions
 
 # Environment variables
 ENV PORT=3200
